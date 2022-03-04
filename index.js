@@ -1,39 +1,74 @@
 #!/usr/bin/node
 
 let http = require("http");
+let fs = require("fs");
 
 let mongo_client = require("mongodb").MongoClient;
 
-let url = "mongdb://localhost/";
+let url = "mongodb://localhost/";
+
+let db;
+
+let extension;
 
 console.log("Iniciando script mongo-http");
 
 mongo_client.connect(url, function(error, conn){
 
 	console.log("Dentro de MongoDB");
+	console.log(error);
 
 	if (error){
 		console.log("ERROR!!!");
 		return;
 	}
 
-	let db = conn.db("tffhd2");
-
-	let characters = db.collection("characters").find();
-
-	console.log(characers);
+	db = conn.db("tffhd2");
 
 });
 
-/*
+
 
 http.createServer(function(req, res){
 	res.writeHead(200);
 
-	let saludo =  "<h1>ola k ase</h1>";
+	if (req.url == "/"){
+		
+		fs.readFile("index.html", function(err, data){
+			res.writeHead(200, {"Content-Type": "text/html"});
+			res.end(data);
+		
+		});
 
-	res.end(saludo);
+		return;
+	}
+
+	let col = "";
+
+	if (req.url == "/characters"){
+		col = "characters";
+	}
+	else if (req.url == "/items"){
+		col = "items";
+	}
+
+	else if (req.url == "/weapons"){
+		col = "weapons";
+	}
+
+	else{
+		res.end();
+		return;
+	}
+
+	let col_data = db.collection(col).find();
+
+	col_data.toArray(function(err, data){
+		let string = JSON.stringify(data);
+			
+		res.end(string);
+	});
 
 }).listen(1095);
 
-*/
+
